@@ -4,7 +4,7 @@
     "configurable"
   ],
   "companyName": "Meiguro",
-  "longName": "Pebble.js",
+  "longName": "Tvheadend-EPG",
   "resources": {
     "media": [
       {
@@ -31,7 +31,7 @@
     ]
   },
   "sdkVersion": "3",
-  "shortName": "Pebble.js",
+  "shortName": "Tvheadend-EPG",
   "targetPlatforms": [
     "aplite",
     "basalt",
