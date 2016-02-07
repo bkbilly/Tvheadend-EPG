@@ -7,16 +7,77 @@
 var UI = require('ui');
 var Vector2 = require('vector2');
 var ajax = require('ajax');
+var Settings = require('settings');
+
+
+Settings.config(
+  { url: 'https://bkbilly.github.io/Tvheadend-EPG/?'+encodeURIComponent(JSON.stringify(Settings.option())) },
+  function(e) {
+    console.log('opening configurable');
+  },
+  function(e) {
+    console.log('closed configurable');
+    console.log(JSON.stringify(e.options));
+    Settings.option(e.options);
+    init();
+  }
+);
 
 var channelsMenu;
+var epgMenu;
+var cardInfo;
 
-createChannelsMenu();
+var user;
+var password;
+var address;
+var port;
+init();
+
+function init(){
+  user = Settings.option('UserName_ID');
+  password = Settings.option('Password_ID');
+  address = Settings.option('IP_ID');
+  port = Settings.option('Port_ID');
+  if(user !== undefined && password !== undefined && address !== undefined && port !== undefined)
+    createChannelsMenu();
+  else
+    createErrorCard("No Config", "Change the configuration page on your phone");
+}
+
+function hideAll(){
+  try{
+    channelsMenu.hide();
+  }catch(err) {
+    console.log(err.message);
+  }
+  try{
+    epgMenu.hide();
+  }catch(err) {
+    console.log(err.message);
+  }
+  try{
+    cardInfo.hide();
+  }catch(err) {
+    console.log(err.message);
+  }
+}
+
+function createErrorCard(title, description){
+  hideAll();
+  cardInfo = new UI.Card({
+    title: title,
+    body: description,
+    scrollable: true
+  });
+  cardInfo.show()
+}
 
 function createChannelsMenu() {
+  hideAll();
   var loadChannels = function(){
     ajax(
       {
-        url: 'http://admin:floak13@spinet.asuscomm.com:9981/api/channel/list',
+        url: 'http://'+user+':'+password+'@'+address+':'+port+'/api/channel/list',
         type: 'json'
       },
       function(data, status, request) {
@@ -31,12 +92,13 @@ function createChannelsMenu() {
         channelsMenu.selection(0, 0);
       },
       function(error, status, request) {
-        console.log('The ajax request failed: ' + error);
+        createErrorCard("Connection Error", "Can't connect to Tvheadend");
       }
     );
   }
 
   channelsMenu = new UI.Menu({
+    highlightBackgroundColor: '#bf00ff',
     sections: [{
       items: [{
         title: 'Loading Data'
@@ -58,7 +120,7 @@ function createEpgMenu(uuid) {
   var loadEPG = function(){
     ajax(
       {
-        url: 'http://admin:floak13@spinet.asuscomm.com:9981/api/epg/events/grid?start=0&limit=50&channel='+uuid,
+        url: 'http://'+user+':'+password+'@'+address+':'+port+'/api/epg/events/grid?start=0&limit=50&channel='+uuid,
         type: 'json'
       },
       function(data, status, request) {
@@ -81,6 +143,7 @@ function createEpgMenu(uuid) {
     );
   }
   epgMenu = new UI.Menu({
+    highlightBackgroundColor: '#bf00ff',
     sections: [{
       items: [{
         title: 'Loading Data'
@@ -97,11 +160,12 @@ function createEpgMenu(uuid) {
 }
 
 function createDescriptionCard(title, description){
-  var card = new UI.Card({
+  cardDescription = new UI.Card({
     title: title,
     body: description,
-    scrollable: true
+    scrollable: true,
+    titleColor: 'blue',
+    bodyColor: 'red'
   });
-  card.show()
-
+  cardDescription.show()
 }
